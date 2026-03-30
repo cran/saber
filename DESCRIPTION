@@ -1,0 +1,24 @@
+Package: saber
+Type: Package
+Title: Code Analysis and Project Context for R
+Version: 0.2.0
+Authors@R: person("Troy", "Hernandez", role = c("aut", "cre"),
+    email = "troy@cornball.ai",
+    comment = c(ORCID = "0009-0005-4248-604X"))
+Description: Parses R source files into AST symbol indices, traces function
+    callers across projects, discovers project dependency graphs, generates
+    project briefings, and provides package introspection tools. Designed
+    for AI coding agents that need structured code understanding.
+License: Apache License (>= 2)
+URL: https://github.com/cornball-ai/saber
+BugReports: https://github.com/cornball-ai/saber/issues
+Suggests: tinytest
+Encoding: UTF-8
+RoxygenNote: 7.3.2
+NeedsCompilation: no
+Packaged: 2026-03-25 08:09:53 UTC; troy
+Author: Troy Hernandez [aut, cre] (ORCID:
+    <https://orcid.org/0009-0005-4248-604X>)
+Maintainer: Troy Hernandez <troy@cornball.ai>
+Repository: CRAN
+Date/Publication: 2026-03-30 08:50:02 UTC

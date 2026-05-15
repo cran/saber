@@ -1,8 +1,8 @@
 # saber
 
-Code analysis and project context for R.
+**Context engineering for R.**
 
-saber ("to know" in Spanish, pronounced [sah-BEHR](https://www.youtube.com/watch?v=m3WBocsw9lw)) parses R source into structured symbol indices, traces function callers across projects, discovers dependency graphs, generates project briefings, and cracks open installed packages for introspection. Built for AI coding agents that need to understand R code without guessing.
+saber ("to know" in Spanish, pronounced [sah-BEHR](https://www.youtube.com/watch?v=m3WBocsw9lw)) assembles agent context, traces blast radius across projects, and introspects packages so AI coding agents don't have to guess.
 
 ## Install
 
@@ -12,23 +12,83 @@ install.packages("saber")
 remotes::install_github("cornball-ai/saber")
 ```
 
+## Running these examples
+
+Examples below use `Rscript -e` for portability (Linux, macOS, Windows). On *nix (Linux and macOS), [littler](https://eddelbuettel.github.io/littler/) (`r`) gives faster startup, but `r -e` does not auto-print return values. These three are equivalent:
+
+```bash
+Rscript -e 'saber::pkg_exports("saber")'         # portable
+r -p -e 'saber::pkg_exports("saber")'            # littler, auto-print
+r -e 'print(saber::pkg_exports("saber"))'        # littler, explicit print
+```
+
+See the [tinyverse development toolchain](https://cornball.ai/posts/tinyverse-development-toolchain/) for the full setup.
+
 ## What it does
 
-**9 exported functions.**
+**13 exported functions.**
+
+### Agent context
 
 | Function | What it does |
 |---|---|
-| `symbols()` | Parse R source files into function defs and calls via `getParseData()` |
+| `agent_context()` | Assemble memory, identity, and instruction files for an agent |
+| `briefing()` | Generate a project briefing (metadata, dependents, git log) |
+
+### Code intelligence
+
+| Function | What it does |
+|---|---|
+| `symbols()` | Parse R source into function defs and calls via `getParseData()` |
 | `blast_radius()` | Find every caller of a function, across projects |
-| `find_downstream()` | Find all projects that depend on a given package |
+| `fn_graph()` | Render a project's internal function call graph as SVG |
+| `pkg_graph()` | Render a package dependency graph as SVG |
+| `graph_svg()` | Force-directed graph renderer (used by `fn_graph` and `pkg_graph`) |
+
+### Project discovery
+
+| Function | What it does |
+|---|---|
 | `projects()` | Discover R package projects and their metadata |
-| `briefing()` | Generate a project context briefing (metadata, dependents, memory, git log) |
+| `find_downstream()` | Find all projects that depend on a given package |
+| `default_exclude()` | Default directories to skip when scanning |
+
+### Package introspection
+
+| Function | What it does |
+|---|---|
 | `pkg_exports()` | List exported functions with argument signatures |
 | `pkg_internals()` | List internal (non-exported) functions |
 | `pkg_help()` | Pull help documentation as markdown |
-| `default_exclude()` | Default directories to skip when scanning |
 
 ## Examples
+
+Assemble agent context from project and workspace files:
+
+```r
+# Claude Code agent in current project
+saber::agent_context(agent = "claude")
+
+# Codex agent with workspace identity
+saber::agent_context(agent = "codex", workspace_dir = "~/.codex/workspace")
+```
+
+Generate a project briefing:
+
+```r
+saber::briefing("saber")
+#> # Briefing: saber
+#> _Generated 2026-03-25 00:30_
+#>
+#> ## Package
+#> - **Name**: saber
+#> - **Title**: Context Engineering for R
+#> - **Version**: 0.7.0
+#>
+#> ## Recent commits
+#> - 7983478 Add r-ci GitHub Actions workflow
+#> - ...
+```
 
 Index all function definitions and calls in a project:
 
@@ -52,28 +112,11 @@ Discover projects and their dependencies:
 ```r
 saber::projects()
 #>   package   title                  version  path            depends  imports
-#>   saber     Code Analysis for R    0.2.0    /home/troy/saber        ...
+#>   saber     Context Engineering    0.7.0    /home/troy/saber        ...
 
 saber::find_downstream("jsonlite")
 #>   [1] "chatterbox" "cornfab" "diffuseR" "llamaR" "llm.api"
 #>   [6] "safetensors" "stt.api" "torch" "tts.api" "tuber" "whisper"
-```
-
-Generate a project briefing for an AI agent:
-
-```r
-saber::briefing("saber")
-#> # Briefing: saber
-#> _Generated 2026-03-25 00:30_
-#>
-#> ## Package
-#> - **Name**: saber
-#> - **Title**: Code Analysis and Project Context for R
-#> - **Version**: 0.2.0
-#>
-#> ## Recent commits
-#> - 7983478 Add r-ci GitHub Actions workflow
-#> - ...
 ```
 
 Inspect any installed package:
@@ -83,15 +126,24 @@ saber::pkg_exports("saber")
 saber::pkg_help("symbols", "saber")
 ```
 
+Render a call graph:
+
+```r
+svg <- saber::fn_graph("~/myproject")
+writeLines(svg, "~/callgraph.svg")
+```
+
 ## How it works
 
-`symbols()` runs `getParseData()` on every `R/*.R` file in a project, extracts function definitions and call sites, and caches the results as RDS in the user cache directory. Cache invalidates on file content changes (MD5).
+`agent_context()` loads standard context files for AI coding agents: project instructions (AGENTS.md / CLAUDE.md), Claude Code memory files, global instructions, and agent identity files (SOUL.md). It skips files the agent already autoloads to avoid duplication.
 
-`blast_radius()` builds on top of `symbols()`. It finds internal callers, then scans `~/` for any project whose DESCRIPTION declares a dependency on the target package. Traces the call graph across all of them.
+`briefing()` assembles project context from DESCRIPTION metadata, downstream dependents, and recent git commits. It writes the markdown to the user cache directory so both the agent and user see the same context.
 
-`projects()` scans for directories containing DESCRIPTION files and reads their metadata. `find_downstream()` does the same scan but filters to projects that depend on a specific package.
+`symbols()` runs `getParseData()` on every `R/*.R` file in a project, extracts function definitions and call sites, and caches the results as RDS. Cache invalidates on file content changes (MD5).
 
-`briefing()` assembles project context from DESCRIPTION metadata, downstream dependents, Claude Code memory files, and recent git commits. It prints the briefing to stdout, returns the same text invisibly, and writes the markdown to the user cache directory so both the agent and user see the same context. An `agent` parameter controls memory inclusion: `agent = "claude"` skips Claude Code memory (since Claude Code autoloads it), while other values include it.
+`blast_radius()` builds on `symbols()`. It finds internal callers, then scans `~/` for any project whose DESCRIPTION declares a dependency on the target package. Traces the call graph across all of them. With `include = c("r", "examples", "vignettes")` it also flags references in roxygen `@examples` blocks and vignette code chunks.
+
+`fn_graph()` and `pkg_graph()` render force-directed SVG graphs via a base R Fruchterman-Reingold simulation. No JavaScript — tooltips and links work via native SVG features.
 
 ## Codex integration
 
@@ -104,13 +156,13 @@ Before working on R code, use the right tool for the job:
 
 | Situation | Command |
 |-----------|---------|
-| Understand a package's API | `r -e 'saber::pkg_exports("pkg")'` |
-| Read function docs | `r -e 'saber::pkg_help("fn", "pkg")'` |
-| Before renaming/changing a function | `r -e 'saber::blast_radius("fn", project = ".")'` |
-| Understand a project's call graph | `r -e 'str(saber::symbols("."))'` |
-| Discover R packages and deps | `r -e 'print(saber::projects())'` |
-| What depends on a package | `r -e 'saber::find_downstream("pkg")'` |
-| Project briefing | `r -e 'saber::briefing("project")'` |
+| Understand a package's API | `Rscript -e 'saber::pkg_exports("pkg")'` |
+| Read function docs | `Rscript -e 'saber::pkg_help("fn", "pkg")'` |
+| Before renaming/changing a function | `Rscript -e 'saber::blast_radius("fn", project = ".")'` |
+| Understand a project's call graph | `Rscript -e 'str(saber::symbols("."))'` |
+| Discover R packages and deps | `Rscript -e 'saber::projects()'` |
+| What depends on a package | `Rscript -e 'saber::find_downstream("pkg")'` |
+| Project briefing | `Rscript -e 'saber::briefing("project")'` |
 
 **blast_radius is mandatory before renaming, moving, or changing the signature of any exported function.** It finds every caller across this project and all downstream projects. Skip it and you break things silently.
 ```
@@ -127,7 +179,13 @@ Enable hooks in your Codex config (`~/.codex/config.toml`):
 
 ```toml
 [features]
-codex_hooks = true
+hooks = true
+```
+
+You can also enable the same feature from the CLI:
+
+```bash
+codex --enable hooks
 ```
 
 Then add the hook to `~/.codex/hooks.json`:
@@ -152,9 +210,17 @@ Then add the hook to `~/.codex/hooks.json`:
 }
 ```
 
-Every new Codex session starts with the project's metadata, downstream dependents, Claude Code memory (if available), and recent git commits already in context.
+Codex may require new or changed hooks to be reviewed before they run. Open
+`/hooks` in Codex and approve the `session-start.R` command after adding it.
+
+If you want neutral cross-agent preferences injected too, create
+`~/.config/agents/GLOBAL.md`. The hook appends it automatically after the
+project briefing. Set `AGENTS_GLOBAL_MD` if you want a different path.
+
+Every new Codex session starts with the project's metadata, downstream dependents, Claude Code memory (if available), recent git commits, and optional global preferences already in context.
 
 ## Claude Code integration
+
 Add the following to your `~/.claude/CLAUDE.md` to teach Claude Code how to use saber:
 
 ```markdown
@@ -164,13 +230,13 @@ Before working on R code, use the right tool for the job:
 
 | Situation | Command |
 |-----------|---------|
-| Understand a package's API | `r -e 'saber::pkg_exports("pkg")'` |
-| Read function docs | `r -e 'saber::pkg_help("fn", "pkg")'` |
-| Before renaming/changing a function | `r -e 'saber::blast_radius("fn", project = ".")'` |
-| Understand a project's call graph | `r -e 'str(saber::symbols("."))'` |
-| Discover R packages and deps | `r -e 'print(saber::projects())'` |
-| What depends on a package | `r -e 'saber::find_downstream("pkg")'` |
-| Project briefing | `r -e 'saber::briefing("project")'` |
+| Understand a package's API | `Rscript -e 'saber::pkg_exports("pkg")'` |
+| Read function docs | `Rscript -e 'saber::pkg_help("fn", "pkg")'` |
+| Before renaming/changing a function | `Rscript -e 'saber::blast_radius("fn", project = ".")'` |
+| Understand a project's call graph | `Rscript -e 'str(saber::symbols("."))'` |
+| Discover R packages and deps | `Rscript -e 'saber::projects()'` |
+| What depends on a package | `Rscript -e 'saber::find_downstream("pkg")'` |
+| Project briefing | `Rscript -e 'saber::briefing("project")'` |
 
 **blast_radius is mandatory before renaming, moving, or changing the signature of any exported function.** It finds every caller across this project and all downstream projects. Skip it and you break things silently.
 ```

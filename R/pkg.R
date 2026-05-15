@@ -1,5 +1,6 @@
 #' @title Package introspection
-#' @description Query installed R packages for exports, internals, and help.
+#' @description Query installed R packages for exported functions, internal
+#'   functions, and help documentation.
 
 #' List exported functions of a package
 #'
@@ -257,14 +258,9 @@ rd2hugo <- function(rd, topic, package) {
 
     body <- rd2md(rd)
 
-    front <- paste0(
-                    "---\n",
-                    "title: \"", topic, "\"\n",
-                    "package: \"", package, "\"\n",
-                    "description: >-\n",
-                    "  ", gsub("\n", " ", description), "\n",
-                    "---\n"
-    )
+    front <- paste0("---\n", "title: \"", topic, "\"\n", "package: \"",
+                    package, "\"\n", "description: >-\n", "  ",
+                    gsub("\n", " ", description), "\n", "---\n")
 
     paste0(front, "\n", body)
 }

@@ -1,7 +1,6 @@
-#' @title Code intelligence: AST symbol index
-#' @description Parse R source files into structured function definitions and
-#'   call relationships.
-#' @importFrom utils getParseData
+# Code intelligence: AST symbol index
+# Parse R source files into structured function definitions and
+# call relationships.
 
 #' Build a symbol index for a project
 #'
@@ -26,6 +25,7 @@
 #' idx <- symbols(d, cache_dir = tempdir())
 #' idx$defs   # function definitions
 #' idx$calls  # call relationships (double calls add)
+#' @importFrom utils getParseData
 #' @export
 symbols <- function(project_dir,
                     cache_dir = file.path(tools::R_user_dir("saber", "cache"), "symbols")) {
@@ -289,4 +289,3 @@ enclosing_def <- function(line, def_ranges) {
     inside$span <- inside$end - inside$start
     inside$name[which.min(inside$span)]
 }
-

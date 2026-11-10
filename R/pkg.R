@@ -1,6 +1,6 @@
-#' @title Package introspection
-#' @description Query installed R packages for exported functions, internal
-#'   functions, and help documentation.
+# Package introspection
+# Query installed R packages for exported functions, internal
+# functions, and help documentation.
 
 #' List exported functions of a package
 #'
@@ -444,4 +444,3 @@ rd_get_aliases <- function(rd) {
     }
     trimws(aliases)
 }
-

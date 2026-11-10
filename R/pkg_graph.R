@@ -1,6 +1,5 @@
-#' @title Project discovery: package dependency graph
-#' @description Render the dependency graph across a set of R packages as
-#'   interactive SVG.
+# Project discovery: package dependency graph
+# Render the dependency graph across a set of R packages as interactive SVG.
 
 #' Render a package-level dependency graph
 #'
@@ -101,4 +100,3 @@ parse_deps <- function(s) {
     parts <- parts[parts != "R" & nzchar(parts)]
     parts
 }
-

@@ -1,5 +1,5 @@
-#' @title Internal utilities
-#' @description Shared helper functions for saber.
+# Internal utilities
+# Shared helper functions for saber.
 
 #' Compute a file hash for change detection
 #'
@@ -35,4 +35,3 @@ default_exclude <- function() {
         "snap", ".npm", ".cargo", ".rustup"
     )
 }
-

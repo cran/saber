@@ -1,10 +1,14 @@
 % tinyrox says don't edit this manually, but it can't stop you!
 \name{pkg_graph}
 \alias{pkg_graph}
-\title{Project discovery: package dependency graph}
+\title{Render a package-level dependency graph}
 \usage{
-pkg_graph(scan_dir = path.expand("~"), packages = NULL,
-          include_suggests = FALSE, ...)
+pkg_graph(
+  scan_dir = path.expand("~"),
+  packages = NULL,
+  include_suggests = FALSE,
+  ...
+)
 }
 \arguments{
 \item{scan_dir}{Directory to scan for project directories.}
@@ -22,10 +26,6 @@ packages in each project's \code{Suggests} field. Default
 Character vector of SVG lines. Write with \code{writeLines()}.
 }
 \description{
-Render the dependency graph across a set of R packages as
-  interactive SVG.
-Render a package-level dependency graph
-
 Discovers R packages under \code{scan_dir} via \code{\link{projects}},
 parses each one's \code{Depends} and \code{Imports} fields, and
 renders edges between packages that both live in \code{scan_dir}.

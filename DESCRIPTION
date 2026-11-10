@@ -1,8 +1,8 @@
 Package: saber
 Type: Package
 Title: Context Engineering for Large Language Model Agents
-Version: 0.7.2
-Date: 2026-06-24
+Version: 0.8.0
+Date: 2026-11-09
 Authors@R: c(
     person("Troy", "Hernandez", role = c("aut", "cre"),
            email = "troy@cornball.ai",
@@ -19,14 +19,14 @@ License: Apache License (>= 2)
 Depends: R (>= 4.4.0)
 URL: https://github.com/cornball-ai/saber
 BugReports: https://github.com/cornball-ai/saber/issues
-Suggests: tinytest
+Suggests: bonsaisitter, tinytest
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2026-06-24 19:31:14 UTC; troy
+Packaged: 2026-11-10 05:32:34 UTC; troy
 Author: Troy Hernandez [aut, cre] (ORCID:
     <https://orcid.org/0009-0005-4248-604X>),
   cornball.ai [cph]
 Maintainer: Troy Hernandez <troy@cornball.ai>
 Repository: CRAN
-Date/Publication: 2026-06-25 05:20:02 UTC
+Date/Publication: 2026-11-10 06:20:02 UTC
